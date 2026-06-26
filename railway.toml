@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "gunicorn --chdir pv_monitoring app:app"
+startCommand = "gunicorn app:app"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
 
