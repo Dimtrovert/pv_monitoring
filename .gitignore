@@ -1,0 +1,21 @@
+# 1. Lingkungan Virtual (Mencegah upload puluhan ribu file library Python)
+venv/
+env/
+.venv/
+
+# 2. File Sampah Kompilasi Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 3. Kredensial dan Variabel Rahasia (SANGAT KRUSIAL UNTUK KEAMANAN)
+.env
+*.env
+secret.key
+
+# 4. Folder Konfigurasi VS Code (Opsional tapi disarankan)
+.vscode/
+
+# 5. File Sampah Sistem Operasi
+.DS_Store
+Thumbs.db
