@@ -1,102 +1,35 @@
-from flask import (
-    Blueprint,
-    request,
-    jsonify
-)
-
-from database.db import db
+from flask import Blueprint, request, jsonify, session, render_template, redirect
+from werkzeug.security import check_password_hash
 from database.models import User
 
-auth_bp = Blueprint(
-    "auth",
-    __name__
-)
+auth_bp = Blueprint("auth", __name__)
 
-
-@auth_bp.route(
-    "/register",
-    methods=["POST"]
-)
-def register():
-
-    data = request.json
-
-    username = data["username"]
-    password = data["password"]
-
-    existing_user = (
-        User.query
-        .filter_by(
-            username=username
-        )
-        .first()
-    )
-
-    if existing_user:
-
-        return jsonify(
-            {
-                "message":
-                "Username already exists"
-            }
-        ), 400
-
-    user = User(
-        username=username,
-        password_hash=password
-    )
-
-    db.session.add(user)
-    db.session.commit()
-
-    return jsonify(
-        {
-            "message":
-            "Registration successful"
-        }
-    )
-
-
-@auth_bp.route(
-    "/login",
-    methods=["POST"]
-)
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    # Jika pengunjung mengakses via browser biasa, tampilkan halaman login
+    if request.method == "GET":
+        # Jika sudah login, jangan biarkan di halaman login, lempar ke dashboard
+        if session.get("logged_in"):
+            return redirect("/")
+        return render_template("login.html")
 
-    data = request.json
+    # Jika pengunjung menekan tombol submit (POST)
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
-    username = data["username"]
-    password = data["password"]
+    # Cari user di database Supabase
+    user = User.query.filter_by(username=username).first()
 
-    user = (
-        User.query
-        .filter_by(
-            username=username
-        )
-        .first()
-    )
+    # Validasi dan Enkripsi
+    if user and check_password_hash(user.password_hash, password):
+        session["logged_in"] = True
+        session["username"] = user.username
+        return jsonify({"status": "success", "message": "Akses Diberikan."}), 200
+    else:
+        return jsonify({"status": "error", "message": "Kredensial tidak valid!"}), 401
 
-    if not user:
-
-        return jsonify(
-            {
-                "message":
-                "User not found"
-            }
-        ), 404
-
-    if user.password_hash != password:
-
-        return jsonify(
-            {
-                "message":
-                "Wrong password"
-            }
-        ), 401
-
-    return jsonify(
-        {
-            "message":
-            "Login success"
-        }
-    )
+@auth_bp.route("/logout")
+def logout():
+    session.clear() # Hancurkan tiket masuk
+    return redirect("/auth/login")

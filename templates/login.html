@@ -1,79 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otorisasi Administrator - PV Monitoring</title>
+    <style>
+        body {
+            margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #11141a; color: #f4f7fb;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            width: 100%; max-width: 360px; text-align: center;
+        }
+        .login-card h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: 1px; }
+        .login-card p { color: #9aa0b7; font-size: 0.9rem; margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; color: #b0b8d8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;}
+        .input-group input {
+            width: 100%; box-sizing: border-box; padding: 14px;
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: #38bdf8; }
+        .login-btn {
+            width: 100%; padding: 16px; background: #38bdf8; color: #0f172a;
+            border: none; border-radius: 12px; font-size: 1rem; font-weight: bold;
+            cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .login-btn:hover { background: #0ea5e9; }
+        #error-msg { color: #f87171; font-size: 0.9rem; margin-top: 15px; display: none; }
+    </style>
 </head>
 <body>
 
-<h1>PV Monitoring Login</h1>
+    <div class="login-card">
+        <h2>PV SYSTEM</h2>
+        <p>Otorisasi Administrator Akses Terbatas</p>
 
-<form id="loginForm">
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Kata Sandi</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="btn-submit">LOGIN KE SISTEM</button>
+            <div id="error-msg"></div>
+        </form>
+    </div>
 
-    <input
-        type="text"
-        id="username"
-        placeholder="Username">
+    <script>
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById("btn-submit");
+        const errorMsg = document.getElementById("error-msg");
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
 
-    <br><br>
+        btn.textContent = "MEMVERIFIKASI...";
+        btn.style.opacity = "0.7";
+        errorMsg.style.display = "none";
 
-    <input
-        type="password"
-        id="password"
-        placeholder="Password">
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
 
-    <br><br>
+            const result = await response.json();
 
-    <button type="submit">
-        Login
-    </button>
-
-</form>
-
-<script>
-
-document
-.getElementById("loginForm")
-.addEventListener(
-"submit",
-async function(e){
-
-    e.preventDefault()
-
-    const username =
-        document.getElementById(
-            "username"
-        ).value
-
-    const password =
-        document.getElementById(
-            "password"
-        ).value
-
-    const response =
-        await fetch(
-            "/auth/login",
-            {
-                method:"POST",
-
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
-
-                body:JSON.stringify({
-                    username,
-                    password
-                })
+            if (response.ok) {
+                // KUNCI REDIRECT: Jika sukses, lemparkan browser ke dashboard
+                btn.textContent = "AKSES DIBERIKAN";
+                btn.style.background = "#10b981";
+                setTimeout(() => { window.location.href = "/"; }, 500);
+            } else {
+                // Tampilkan pesan error jika salah password
+                throw new Error(result.message);
             }
-        )
-
-    const result =
-        await response.json()
-
-    alert(result.message)
-})
-
-</script>
-
+        } catch (error) {
+            btn.textContent = "LOGIN KE SISTEM";
+            btn.style.opacity = "1";
+            errorMsg.textContent = error.message;
+            errorMsg.style.display = "block";
+        }
+    });
+    </script>
 </body>
 </html>

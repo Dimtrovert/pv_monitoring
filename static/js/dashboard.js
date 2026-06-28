@@ -98,3 +98,43 @@ client.on('message', (t, msg) => {
         pvChart.update();
     }
 });
+
+// ==========================================
+// 5. KONTROL RELAY MANUAL
+// ==========================================
+let relayState = true; // Asumsi default saat dashboard dimuat adalah ON
+
+window.toggleRelay = function() {
+    relayState = !relayState;
+    const btn = document.getElementById('relayButton');
+    
+    // Pembaruan UI langsung untuk responsivitas visual
+    if (relayState) {
+        btn.textContent = "RELAY: ON";
+        btn.className = "relay-btn btn-on";
+    } else {
+        btn.textContent = "RELAY: OFF";
+        btn.className = "relay-btn btn-off";
+    }
+
+    // Merakit paket data untuk alat Anda
+    const payload = JSON.stringify({
+        command: "relay",
+        state: relayState ? "ON" : "OFF",
+        triggered_by: "dashboard_manual"
+    });
+    
+    // Publikasikan perintah ke topik kontrol (QoS 1 untuk jaminan pengiriman)
+    client.publish('pv/control', payload, { qos: 1 }, (err) => {
+        if (err) {
+            console.error("🔴 Gagal mengirim perintah relay:", err);
+            alert("Koneksi gagal! Perintah tidak terkirim.");
+            // Kembalikan status tombol jika gagal
+            relayState = !relayState; 
+            btn.textContent = relayState ? "RELAY: ON" : "RELAY: OFF";
+            btn.className = relayState ? "relay-btn btn-on" : "relay-btn btn-off";
+        } else {
+            console.log("🟢 Perintah relay berhasil dieksekusi:", payload);
+        }
+    });
+};

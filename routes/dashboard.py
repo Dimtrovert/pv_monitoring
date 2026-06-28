@@ -4,8 +4,19 @@ from datetime import datetime, timedelta
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
+from flask import Blueprint, render_template, current_app, jsonify, request, session, redirect
+
+from database.models import PVData
+from datetime import datetime, timedelta
+
+dashboard_bp = Blueprint("dashboard", __name__)
+
 @dashboard_bp.route("/")
 def dashboard():
+    # KUNCI KEAMANAN: Cek apakah user memiliki tiket masuk (session)
+    if not session.get("logged_in"):
+        return redirect("/auth/login") # Tendang ke halaman login jika tidak ada
+
     return render_template(
         "dashboard.html",
         mqtt_config={
@@ -19,6 +30,7 @@ def dashboard():
         }
     )
 
+# ... (biarkan rute /api/historical-data di bawahnya tetap seperti semula)
 @dashboard_bp.route("/api/historical-data")
 def historical_data():
     try:
